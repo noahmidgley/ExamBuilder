@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tags, question_image with context %}
+{% block title %}Paper builder{% endblock %}
+{% block content %}
+<div class="builder-layout">
+  <section>
+    <div class="page-head">
+      <h1>Paper builder</h1>
+      {% if b.paper_id %}<span class="muted">Editing a saved paper</span>{% endif %}
+    </div>
+
+    {% if questions %}
+      <p class="muted">Drag questions to reorder them (or use the arrows).</p>
+      <ol class="builder-list" id="builder-list" data-reorder-url="{{ url_for('main.builder_reorder') }}">
+        {% for q in questions %}
+          <li class="card builder-item" draggable="true" data-id="{{ q.id }}" data-marks="{{ q.marks or 0 }}">
+            <div class="builder-item-head">
+              <span class="drag-handle" aria-hidden="true">⠿</span>
+              <span class="number">Q{{ loop.index }}</span>
+              {{ tags(q) }}
+              <div class="builder-buttons">
+                <form method="post" action="{{ url_for('main.builder_move') }}" class="inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="id" value="{{ q.id }}">
+                  <button class="icon-button" name="direction" value="up" aria-label="Move up" {{ 'disabled' if loop.first }}>↑</button>
+                  <button class="icon-button" name="direction" value="down" aria-label="Move down" {{ 'disabled' if loop.last }}>↓</button>
+                </form>
+                <form method="post" action="{{ url_for('main.builder_remove') }}" class="inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="id" value="{{ q.id }}">
+                  <button class="button danger small">Remove</button>
+                </form>
+              </div>
+            </div>
+            <details class="extra">
+              <summary>Show question</summary>
+              {{ question_image(q) }}
+            </details>
+          </li>
+        {% endfor %}
+      </ol>
+    {% else %}
+      <p class="empty card">
+        No questions yet. Go to the <a href="{{ url_for('main.bank') }}">question bank</a> and press “Add to paper”.
+      </p>
+    {% endif %}
+  </section>
+
+  <aside class="card builder-summary">
+    <form method="post" action="{{ url_for('main.builder_save') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Title
+        <input name="title" value="{{ b.title }}" placeholder="e.g. Coasts practice paper" maxlength="120">
+      </label>
+      <dl class="totals">
+        <dt>Questions</dt><dd id="total-count">{{ basket_info.count }}</dd>
+        <dt>Total marks</dt><dd id="total-marks">{{ basket_info.marks }}</dd>
+        <dt>Estimated time</dt><dd id="total-time">{{ basket_info.time }}</dd>
+      </dl>
+      <p class="muted small">Time is based on the real exam's pace for {{ SUBJECTS[subject].name }}.</p>
+      <button class="button primary wide" {{ 'disabled' if not questions }}>Save paper</button>
+    </form>
+    {% if b.paper_id %}
+      <p class="muted small">Downloads use the last saved version.</p>
+      <a class="button wide" href="{{ url_for('main.paper_pdf', pid=b.paper_id) }}">Download paper PDF</a>
+      <a class="button wide" href="{{ url_for('main.markscheme_pdf', pid=b.paper_id) }}">Download mark scheme PDF</a>
+    {% endif %}
+    <form method="post" action="{{ url_for('main.builder_new') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="button wide" data-confirm="Start a new paper? Unsaved changes to this one will be lost.">Start a new paper</button>
+    </form>
+  </aside>
+</div>
+{% endblock %}

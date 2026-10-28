@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Choose a subject{% endblock %}
+{% block content %}
+<h1>Choose a subject</h1>
+<div class="subject-picker">
+  {% for key, s in SUBJECTS.items() %}
+    <a class="subject-tile {{ key }}" href="{{ url_for('main.choose_subject', name=key) }}">
+      <span class="subject-name">{{ s.name }}</span>
+      <span class="muted">{{ s.board }} · {{ counts[key] }} questions</span>
+    </a>
+  {% endfor %}
+</div>
+{% endblock %}

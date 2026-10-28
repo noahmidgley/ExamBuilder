@@ -1,0 +1,30 @@
+# Secrets - NEVER commit these
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Database (lives in instance/, contains your data)
+instance/*
+!instance/.gitkeep
+
+# Downloaded papers and cropped images - large, and copyrighted by the exam boards
+papers/**/*.pdf
+storage/questions/*
+storage/markschemes/*
+storage/inserts/*
+!storage/**/.gitkeep
+
+# macOS
+.DS_Store
+
+# Generated each time the downloader runs
+papers/download_report.md
+papers/inbox/*
+
+# Deployment zip
+deploy/

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tags, extras, question_image with context %}
+{% block title %}Review{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Review <span class="muted">· {{ total }} waiting</span></h1>
+  <nav class="tabs">
+    <a href="{{ url_for('main.review') }}" class="{{ 'active' if not paper }}">All</a>
+    {% for code, name in SUBJECTS[subject].papers.items() %}
+      <a href="{{ url_for('main.review', paper=code) }}" class="{{ 'active' if paper == code }}">{{ name }}</a>
+    {% endfor %}
+  </nav>
+</div>
+<p class="muted">
+  These are questions the importer wasn't sure about. Check the crop and mark scheme,
+  fix the sub-topic or marks if needed, then approve. Approved questions appear in the question bank.
+</p>
+
+{% for q in questions %}
+  <article class="card question-card review-card">
+    <header class="card-head">{{ tags(q) }}</header>
+    {% if q.review_reason %}
+      <ul class="reasons">
+        {% for reason in q.review_reason.split('; ') %}<li>{{ reason }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+    {{ question_image(q) }}
+    {{ extras(q) }}
+
+    <form method="post" action="{{ url_for('main.update_question', qid=q.id) }}" class="review-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Sub-topic
+        {# Grouped by topic, so choosing a sub-topic also sets the topic #}
+        <select name="subtopic">
+          <option value="">— choose —</option>
+          {% for topic, subs in topics_for(q.subject, q.paper).items() %}
+            <optgroup label="{{ topic }}">
+              {% for sub in subs %}
+                <option value="{{ sub }}" {{ 'selected' if sub == q.subtopic }}>{{ sub }}</option>
+              {% endfor %}
+            </optgroup>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Marks
+        <input type="number" name="marks" min="1" max="50" value="{{ q.marks if q.marks is not none }}" required>
+      </label>
+      <div class="actions">
+        <button class="button primary" name="action" value="approve">Approve</button>
+        <button class="button" name="action" value="save">Save</button>
+      </div>
+    </form>
+    <form method="post" action="{{ url_for('main.delete_question', qid=q.id) }}" class="inline delete-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="button danger" data-confirm="Delete {{ source_label(q) }} from the question bank?">Delete question</button>
+    </form>
+  </article>
+{% else %}
+  <p class="empty card">Nothing to review. 🎉</p>
+{% endfor %}
+
+{% if pages > 1 %}
+  <nav class="pager">
+    {% if page > 1 %}<a class="button" href="{{ url_for('main.review', paper=paper or None, page=page - 1) }}">← Previous</a>{% endif %}
+    <span>Page {{ page }} of {{ pages }}</span>
+    {% if page < pages %}<a class="button" href="{{ url_for('main.review', paper=paper or None, page=page + 1) }}">Next →</a>{% endif %}
+  </nav>
+{% endif %}
+{% endblock %}

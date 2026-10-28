@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tags, extras, question_image with context %}
+{% block title %}{{ paper.title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ paper.title }}</h1>
+    <p class="muted">{{ SUBJECTS[paper.subject].name }} · {{ questions|length }} questions · {{ marks }} marks · {{ time }}</p>
+  </div>
+  <div class="paper-actions">
+    <form method="post" action="{{ url_for('main.paper_edit', pid=paper.id) }}" class="inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="button primary">Edit</button>
+    </form>
+    <a class="button" href="{{ url_for('main.paper_pdf', pid=paper.id) }}">Download paper PDF</a>
+      <a class="button" href="{{ url_for('main.paper_pdf', pid=paper.id, cover=0) }}" title="Just the questions, no front cover">Paper PDF without cover</a>
+    <a class="button" href="{{ url_for('main.markscheme_pdf', pid=paper.id) }}">Download mark scheme PDF</a>
+  </div>
+</div>
+
+{% for q in questions %}
+  <article class="card question-card">
+    <header class="card-head">
+      <span class="number big">Question {{ loop.index }}</span>
+      {{ tags(q) }}
+    </header>
+    {{ question_image(q, collapsible=false) }}
+    {{ extras(q) }}
+  </article>
+{% else %}
+  <p class="empty card">This paper has no questions (they may have been deleted from the bank).</p>
+{% endfor %}
+{% endblock %}

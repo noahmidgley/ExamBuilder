@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tags, extras, question_image, add_button with context %}
+{% block title %}Question bank{% endblock %}
+{% block content %}
+<div class="bank-layout">
+
+  {# ---------- Filters (a normal GET form: the URL holds the filters, so you can bookmark them) ---------- #}
+  <form class="filters card" method="get" id="filters">
+    <div class="filter-head">
+      <h2>Filters</h2>
+      <a href="{{ url_for('main.bank', include_review='1' if f.include_review else None) }}">Clear</a>
+    </div>
+
+    <label class="search">Search text
+      <input type="search" name="text" value="{{ f.text }}" placeholder="e.g. longshore drift">
+    </label>
+
+    <label class="check">
+      <input type="checkbox" name="include_review" value="1" {{ 'checked' if f.include_review }}>
+      Include questions awaiting review
+    </label>
+
+    <fieldset>
+      <legend>Paper</legend>
+      {% for code, name in SUBJECTS[subject].papers.items() %}
+        <label class="check">
+          <input type="checkbox" name="paper" value="{{ code }}" {{ 'checked' if code in f.paper }}>
+          {{ name }} <span class="count">{{ options.paper_counts.get(code, 0) }}</span>
+        </label>
+      {% endfor %}
+    </fieldset>
+
+    <fieldset>
+      <legend>Topic</legend>
+      {% for topic, subtopics in options.topics.items() %}
+        <details class="topic-group" {{ 'open' if topic in f.topic or (subtopics | select('in', f.subtopic) | list) }}>
+          <summary>
+            <label class="check">
+              <input type="checkbox" name="topic" value="{{ topic }}" {{ 'checked' if topic in f.topic }}>
+              {{ topic }} <span class="count">{{ options.topic_counts.get(topic, 0) }}</span>
+            </label>
+          </summary>
+          {% for sub in subtopics %}
+            <label class="check sub">
+              <input type="checkbox" name="subtopic" value="{{ sub }}" {{ 'checked' if sub in f.subtopic }}>
+              {{ sub }} <span class="count">{{ options.subtopic_counts.get(sub, 0) }}</span>
+            </label>
+          {% endfor %}
+        </details>
+      {% endfor %}
+    </fieldset>
+
+    <fieldset>
+      <legend>Marks</legend>
+      <div class="chips">
+        {% for m in options.marks %}
+          <label class="chip">
+            <input type="checkbox" name="marks" value="{{ m }}" {{ 'checked' if m in f.marks }}>
+            <span>{{ m }}</span>
+          </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Exam series</legend>
+      {% for s in options.series %}
+        <label class="check">
+          <input type="checkbox" name="series" value="{{ s }}" {{ 'checked' if s in f.series }}> {{ s }}
+        </label>
+      {% endfor %}
+    </fieldset>
+
+    <button class="button primary no-js-only">Apply filters</button>
+  </form>
+
+  {# ---------- Results ---------- #}
+  <section class="results">
+    <div class="results-head">
+      <h1>{{ total }} question{{ '' if total == 1 else 's' }}</h1>
+      {% if waiting and not f.include_review %}
+        <p class="notice">
+          {{ waiting }} question{{ ' is' if waiting == 1 else 's are' }} waiting for review and not shown.
+          <a href="{{ url_for('main.bank', **(request.args.to_dict(flat=False) | with_args(include_review='1', page=None))) }}">Include them</a>
+          or <a href="{{ url_for('main.review') }}">review them</a>.
+        </p>
+      {% endif %}
+    </div>
+
+    {% for q in questions %}
+      <article class="card question-card">
+        <header class="card-head">
+          {{ tags(q) }}
+          {{ add_button(q, in_basket) }}
+        </header>
+        {{ question_image(q) }}
+        {{ extras(q) }}
+      </article>
+    {% else %}
+      <p class="empty card">No questions match these filters.</p>
+    {% endfor %}
+
+    {% if pages > 1 %}
+      <nav class="pager">
+        {% set args = request.args.to_dict(flat=False) %}
+        {% if page > 1 %}
+          <a class="button" href="{{ url_for('main.bank', **(args | with_args(page=page - 1))) }}">← Previous</a>
+        {% endif %}
+        <span>Page {{ page }} of {{ pages }}</span>
+        {% if page < pages %}
+          <a class="button" href="{{ url_for('main.bank', **(args | with_args(page=page + 1))) }}">Next →</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

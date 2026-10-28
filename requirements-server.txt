@@ -1,0 +1,8 @@
+# Only what the website needs to run (e.g. on PythonAnywhere).
+# Downloading, splitting and tagging papers happen on your own computer
+# with requirements.txt.
+Flask>=3.0
+Flask-WTF>=1.2
+python-dotenv>=1.0
+PyMuPDF>=1.24
+requests>=2.31

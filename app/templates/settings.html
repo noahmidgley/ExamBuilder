@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<h1>Settings</h1>
+<div class="settings-grid">
+  <form method="post" action="{{ url_for('main.change_password') }}" class="card">
+    <h2>Change password</h2>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Current password
+      <input type="password" name="current" autocomplete="current-password" required>
+    </label>
+    <label>New password (at least 10 characters)
+      <input type="password" name="new" autocomplete="new-password" minlength="10" required>
+    </label>
+    <label>Repeat new password
+      <input type="password" name="confirm" autocomplete="new-password" minlength="10" required>
+    </label>
+    <button class="button primary">Change password</button>
+  </form>
+
+  <div class="card">
+    <h2>Backup</h2>
+    <p>Download a copy of the database: every question, topic, review decision and saved paper.
+       (The question images aren't included; they can be rebuilt by re-running the importer.)</p>
+    <a class="button primary" href="{{ url_for('main.backup') }}">Download database backup</a>
+  </div>
+</div>
+
+<div class="card interest-list">
+  <h2>Interest sign-ups ({{ signups|length }})</h2>
+  <p class="muted small">
+    From the public <a href="{{ url_for('interest.form') }}">register interest</a> page.
+    {% if not email_ready %}Email notifications are off: set RESEND_API_KEY and NOTIFY_EMAIL to turn them on.{% endif %}
+  </p>
+  {% if signups %}
+    <table class="table">
+      <tr><th>Date</th><th>Name</th><th>Education level</th><th>Message</th><th>Emailed</th></tr>
+      {% for s in signups %}
+        <tr><td>{{ s.created_at[:16] }}</td><td>{{ s.name }}</td><td>{{ s.education }}</td>
+            <td>{{ s.message or '' }}</td><td>{{ '✓' if s.emailed else '–' }}</td></tr>
+      {% endfor %}
+    </table>
+  {% endif %}
+</div>
+{% endblock %}

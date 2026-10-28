@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {# Stop search engines indexing the site, as extra protection on top of the login #}
+  <meta name="robots" content="noindex, nofollow">
+  {# The CSRF token, read by app.js and sent with every background request #}
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}ExamBuilder{% endblock %} · ExamBuilder</title>
+  {# A tiny built-in tab icon, so browsers don't request a missing favicon.ico #}
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232557d6'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="{{ static_url('style.css') }}">
+  <script src="{{ static_url('app.js') }}" defer></script>
+</head>
+<body>
+  {% if session.logged_in %}
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('main.home') }}">ExamBuilder</a>
+
+    {# Subject switcher: the current subject is highlighted #}
+    <nav class="subject-switch" aria-label="Subject">
+      {% for key, s in SUBJECTS.items() %}
+        <a href="{{ url_for('main.choose_subject', name=key, next=request.path if subject else None) }}"
+           class="{{ 'active' if key == subject }}">{{ s.name }}</a>
+      {% endfor %}
+    </nav>
+
+    {% if subject %}
+    <nav class="main-nav" aria-label="Main">
+      <a href="{{ url_for('main.bank') }}" class="{{ 'active' if request.endpoint == 'main.bank' }}">Question bank</a>
+      <a href="{{ url_for('main.builder') }}" class="{{ 'active' if request.endpoint == 'main.builder' }}">
+        Paper builder
+        <span class="badge" id="basket-badge" data-count="{{ basket_info.count }}">
+          {{ basket_info.count }} Q · {{ basket_info.marks }} marks
+        </span>
+      </a>
+      <a href="{{ url_for('main.papers') }}" class="{{ 'active' if request.endpoint in ('main.papers', 'main.paper_view') }}">My papers</a>
+      <a href="{{ url_for('main.review') }}" class="{{ 'active' if request.endpoint == 'main.review' }}">Review</a>
+    </nav>
+    {% endif %}
+
+    <nav class="user-nav">
+      <a href="{{ url_for('main.settings') }}" class="{{ 'active' if request.endpoint == 'main.settings' }}">Settings</a>
+      <form method="post" action="{{ url_for('auth.logout') }}" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="link-button">Log out</button>
+      </form>
+    </nav>
+  </header>
+  {% endif %}
+
+  <main class="{% block main_class %}container{% endblock %}">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}" role="status">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

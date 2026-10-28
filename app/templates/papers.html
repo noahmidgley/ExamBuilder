@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}My papers{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>My {{ SUBJECTS[subject].name }} papers</h1>
+  <form method="post" action="{{ url_for('main.builder_new') }}" class="inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="button primary">+ New paper</button>
+  </form>
+</div>
+
+{% for p in papers %}
+  <article class="card paper-row">
+    <div>
+      <h2><a href="{{ url_for('main.paper_view', pid=p.id) }}">{{ p.title }}</a></h2>
+      <p class="muted">{{ p.n }} questions · {{ p.marks }} marks · {{ minutes(p.marks) }} · updated {{ p.updated_at[:10] }}</p>
+    </div>
+    <div class="paper-actions">
+      <a class="button" href="{{ url_for('main.paper_view', pid=p.id) }}">Open</a>
+      {% for action, label in [('paper_edit', 'Edit'), ('paper_duplicate', 'Duplicate')] %}
+        <form method="post" action="{{ url_for('main.' ~ action, pid=p.id) }}" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="button">{{ label }}</button>
+        </form>
+      {% endfor %}
+      <form method="post" action="{{ url_for('main.paper_delete', pid=p.id) }}" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="button danger" data-confirm="Delete “{{ p.title }}”? This can't be undone.">Delete</button>
+      </form>
+      <a class="button" href="{{ url_for('main.paper_pdf', pid=p.id) }}">Download paper PDF</a>
+      <a class="button" href="{{ url_for('main.paper_pdf', pid=p.id, cover=0) }}" title="Just the questions, no front cover">Paper PDF without cover</a>
+      <a class="button" href="{{ url_for('main.markscheme_pdf', pid=p.id) }}">Download mark scheme PDF</a>
+    </div>
+  </article>
+{% else %}
+  <p class="empty card">No saved papers yet. Build one in the <a href="{{ url_for('main.builder') }}">paper builder</a>.</p>
+{% endfor %}
+{% endblock %}

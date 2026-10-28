@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Log in{% endblock %}
+{% block main_class %}login-page{% endblock %}
+{% block content %}
+<form method="post" class="card login-card">
+  <h1>ExamBuilder</h1>
+  {% if not configured %}
+    <p class="flash flash-error">
+      No login is set up yet. Run <code>.venv/bin/python scripts/setup_env.py</code> in Terminal.
+    </p>
+  {% endif %}
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>Username
+    <input name="username" autocomplete="username" required autofocus>
+  </label>
+  <label>Password
+    <input name="password" type="password" autocomplete="current-password" required>
+  </label>
+  <button class="button primary">Log in</button>
+  <p class="muted small center">Want access? <a href="{{ url_for('interest.form') }}">Register your interest</a></p>
+</form>
+{% endblock %}

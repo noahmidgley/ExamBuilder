@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Register interest{% endblock %}
+{% block main_class %}login-page{% endblock %}
+{% block content %}
+<form method="post" class="card login-card interest-card">
+  <h1>Interested in ExamBuilder?</h1>
+  <p class="muted">Build your own exam papers from real past questions, filtered by topic. Leave your details and I'll be in touch.</p>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <label>Name
+    <input name="name" maxlength="100" required autocomplete="name" value="{{ form.get('name', '') }}">
+  </label>
+
+  <label>Education level
+    <select name="education" required>
+      <option value="">— choose —</option>
+      {% for level in levels %}
+        <option value="{{ level }}" {{ 'selected' if form.get('education') == level }}>{{ level }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Message <span class="muted">(optional)</span>
+    <textarea name="message" maxlength="1000" rows="3">{{ form.get('message', '') }}</textarea>
+  </label>
+
+  {# Honeypot: hidden from people, but bots fill it in. #}
+  <div class="honeypot" aria-hidden="true">
+    <label>Website <input name="website" tabindex="-1" autocomplete="off"></label>
+  </div>
+
+  <button class="button primary">Send</button>
+  <p class="muted small center"><a href="{{ url_for('auth.login') }}">Back to log in</a></p>
+</form>
+{% endblock %}

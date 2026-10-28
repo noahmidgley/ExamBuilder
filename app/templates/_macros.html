@@ -1,0 +1,67 @@
+{#
+  Reusable pieces of HTML ("macros" are like functions for templates).
+
+  question_card(q, ...) draws one question: the cropped image, tags for
+  topic / marks / source, and optional buttons. The mark scheme and insert
+  figures sit inside <details> elements, which open and close without any
+  JavaScript, and their images use loading="lazy" so they only download
+  when you open them.
+#}
+
+{% macro tags(q) %}
+  <div class="tags">
+    {% if q.topic %}
+      <span class="tag topic">{{ q.topic }}</span>
+    {% else %}
+      <span class="tag warn">No topic yet</span>
+    {% endif %}
+    {% if q.subtopic %}<span class="tag subtopic">{{ q.subtopic }}</span>{% endif %}
+    <span class="tag marks">{{ q.marks if q.marks is not none else '?' }} mark{{ '' if q.marks == 1 else 's' }}</span>
+    <span class="tag source">{{ source_label(q) }}</span>
+    {% if q.status == 'needs_review' %}<span class="tag warn">Needs review</span>{% endif %}
+  </div>
+{% endmacro %}
+
+{% macro extras(q) %}
+  {% set figures = insert_images(q) %}
+  {% if figures %}
+    <details class="extra">
+      <summary>View figure{{ 's' if figures|length > 1 }} from the insert</summary>
+      {% for src in figures %}<img src="{{ src }}" alt="Insert page" loading="lazy">{% endfor %}
+    </details>
+  {% endif %}
+  <details class="extra">
+    <summary>View mark scheme</summary>
+    {% if q.markscheme_image or q.markscheme_regions not in (None, '', '[]') %}
+      <img src="{{ question_img_url(q, 'markscheme') }}"
+           alt="Mark scheme for {{ source_label(q) }}" loading="lazy">
+    {% else %}
+      <p class="muted">No mark scheme was matched to this question.</p>
+    {% endif %}
+  </details>
+{% endmacro %}
+
+{% macro question_image(q, collapsible=true) %}
+  {# Crops include all the answer space (needed for printing), which makes
+     them tall. When browsing we show the top part, with a button to expand. #}
+  <div class="question-frame {{ 'collapsible' if collapsible }}">
+    <img class="question-image" src="{{ question_img_url(q, 'question') }}"
+         alt="{{ source_label(q) }}" loading="lazy">
+    {% if collapsible %}<button type="button" class="expand-button">Show whole question ▾</button>{% endif %}
+  </div>
+{% endmacro %}
+
+{% macro add_button(q, in_basket) %}
+  {# Works without JavaScript (a normal form post); app.js upgrades it to an
+     instant background request that toggles between Add and Remove. #}
+  {% set added = q.id in in_basket %}
+  <form method="post" class="inline js-basket"
+        action="{{ url_for('main.builder_remove' if added else 'main.builder_add') }}"
+        data-add-url="{{ url_for('main.builder_add') }}" data-remove-url="{{ url_for('main.builder_remove') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="id" value="{{ q.id }}">
+    <button class="button {{ 'added' if added else 'primary' }}" data-added="{{ 'yes' if added else 'no' }}">
+      {{ '✓ In paper (remove)' if added else '+ Add to paper' }}
+    </button>
+  </form>
+{% endmacro %}

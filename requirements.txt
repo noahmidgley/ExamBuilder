@@ -1,0 +1,18 @@
+# Web framework (includes Werkzeug, which we use for password hashing)
+Flask>=3.0
+# CSRF protection for forms (Stage 4)
+Flask-WTF>=1.2
+# Loads secrets from the .env file into environment variables
+python-dotenv>=1.0
+# PDF reading/cropping (Stage 3) and PDF export (Stage 5)
+PyMuPDF>=1.24
+# HTTP requests for the paper downloader (Stage 2)
+requests>=2.31
+# Parses the OCR web page HTML (Stage 2)
+beautifulsoup4>=4.12
+# Claude API client for topic tagging (Stage 3)
+anthropic>=0.40
+# Production web server used on Render (Stage 6)
+gunicorn>=22.0
+# Test runner
+pytest>=8.0
